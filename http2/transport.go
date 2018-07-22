@@ -643,6 +643,22 @@ func (cc *ClientConn) setGoAway(f *GoAwayFrame) {
 			}
 		}
 	}
+
+	go func() { // added by haisoo
+		for {
+			time.Sleep(time.Second)
+			cc.mu.Lock()
+			closed := cc.closed
+			cc.mu.Unlock()
+			if VerboseLogs {
+				log.Printf("http2: Transport ensure closing of goaway'd cc %p: closed=%v", cc, closed)
+			}
+			if closed {
+				break
+			}
+			cc.closeIfIdle()
+		}
+	}()
 }
 
 // CanTakeNewRequest reports whether the connection can take a new request,
